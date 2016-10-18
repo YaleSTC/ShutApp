@@ -34,6 +34,7 @@ public class MainActivity extends Activity implements
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
+    // Necessary for the unified google services.
     private GoogleApiClient mApiClient;
     private TextView mTextView;
     private ImageView gpsStatusCircle;
@@ -51,7 +52,6 @@ public class MainActivity extends Activity implements
             }
         });
 
-
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Wearable.API)
@@ -60,8 +60,10 @@ public class MainActivity extends Activity implements
                 .build();
     }
 
+    // Called automatically by mApiClient when it connects to the google services.
     @Override
     public void onConnected(Bundle bundle) {
+        // request an update every 2 seconds.
         LocationRequest lr = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(2000);
@@ -76,6 +78,8 @@ public class MainActivity extends Activity implements
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+
+        // register the request and the inline the callback definition.
         LocationServices.FusedLocationApi
                 .requestLocationUpdates(mApiClient, lr, this)
                 .setResultCallback(new ResultCallback() {
@@ -124,12 +128,15 @@ public class MainActivity extends Activity implements
         // TODO
     }
 
+    // Called automatically by the unified google api client when location has been fetched and
+    // changed.
     @Override
     public void onLocationChanged(Location location) {
         mTextView.setText("Your location has been found. Fetching Shuttle info...");
 
         Uri.Builder builder = new Uri.Builder();
         // TODO: Parametrize this. For now everything is literally hardcoded.
+        // Prepare the URI  and headers
         builder.scheme("http")
                 .authority("transloc-api-1-2.p.mashape.com")
                 .appendPath("stops.json")
@@ -146,6 +153,7 @@ public class MainActivity extends Activity implements
         headers.put("X-Mashape-Key", "fz7Q6hHUCXmshuArB2putNEJEWoup10QP7sjsnCuGdQZDKdGPg");
         headers.put("Accept", "application/json");
 
+        // execute the http api query
         HttpRequestHandler reqHandler = new HttpRequestHandler(
                 this,
                 builder.toString(),
@@ -155,6 +163,7 @@ public class MainActivity extends Activity implements
         reqHandler.execute();
     }
 
+    // Handler for received stops response.
     private class stopsFetchedListener implements HttpRequestHandler.Listener {
         @Override
         public void onResponseFetched(HttpRequestHandler.MyResult result) {
