@@ -2,11 +2,17 @@ package com.yalestc.shutapp;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.wearable.view.WatchViewStub;
+import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -26,6 +32,7 @@ public class MainActivity extends Activity implements
 
     private GoogleApiClient mApiClient;
     private TextView mTextView;
+    private ImageView gpsStatusCircle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +43,10 @@ public class MainActivity extends Activity implements
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 mTextView = (TextView) stub.findViewById(R.id.text);
+                gpsStatusCircle = (ImageView) stub.findViewById(R.id.gps_status_circle);
             }
         });
+
 
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -70,9 +79,16 @@ public class MainActivity extends Activity implements
                     public void onResult(@NonNull Result result) {
                         Status status = result.getStatus();
                         if (status.isSuccess()) {
+                            ShapeDrawable circle = new ShapeDrawable(new OvalShape());
+                            circle.getPaint().setColor(Color.GREEN);
+                            circle.getShape().resize(10, 10);
+                            ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
                             mTextView.setText("I think I will have location for you!");
+
+                            Log.e("asD", "GPS service connected.");
                         } else {
                             mTextView.setText("Cannot fetch your location. Will try again!");
+                            Log.e("asd", "GPS service could not be connected/");
                         }
                     }
                 });

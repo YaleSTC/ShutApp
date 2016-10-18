@@ -12,5 +12,26 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="@string/hello_square" />
+        android:text="@string/testing_round_ks" />
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text"
+        android:layout_centerHorizontal="true">
+
+        <TextView
+            android:id="@+id/gps_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GPS status:  "/>
+
+        <ImageView
+            android:id="@+id/gps_status_circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/gps_status"
+            android:layout_centerVertical="true"
+            />
+    </RelativeLayout>
 </RelativeLayout>
