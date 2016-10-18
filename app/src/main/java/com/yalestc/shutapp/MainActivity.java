@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +25,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -79,12 +83,12 @@ public class MainActivity extends Activity implements
                     public void onResult(@NonNull Result result) {
                         Status status = result.getStatus();
                         if (status.isSuccess()) {
+                            // TODO: make this UI work. No clue why it doesn't draw lol.
                             ShapeDrawable circle = new ShapeDrawable(new OvalShape());
                             circle.getPaint().setColor(Color.GREEN);
                             circle.getShape().resize(50, 50);
                             ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
-                            mTextView.setText("I think I will have location for you!");
-
+                            mTextView.setText("GPS connected.");
                             Log.e("asD", "GPS service connected.");
                         } else {
                             mTextView.setText("Cannot fetch your location. Will try again!");
@@ -122,6 +126,44 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        mTextView.setText("Lat: " + location.getLatitude() + " long: " + location.getLongitude());
+        mTextView.setText("Your location has been found. Fetching Shuttle info...");
+
+        Uri.Builder builder = new Uri.Builder();
+        // TODO: Parametrize this. For now everything is literally hardcoded.
+        builder.scheme("http")
+                .authority("transloc-api-1-2.p.mashape.com")
+                .appendPath("stops.json")
+                .appendQueryParameter("agencies", "128")
+                .appendQueryParameter("geo_area",
+                        location.getLongitude() +
+                                "," +
+                                location.getLatitude() +
+                                "|" +
+                                "500"
+                );
+
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("X-Mashape-Key", "fz7Q6hHUCXmshuArB2putNEJEWoup10QP7sjsnCuGdQZDKdGPg");
+        headers.put("Accept", "application/json");
+
+        HttpRequestHandler reqHandler = new HttpRequestHandler(
+                this,
+                builder.toString(),
+                headers,
+                new stopsFetchedListener(),
+                true);
+        reqHandler.execute();
+    }
+
+    private class stopsFetchedListener implements HttpRequestHandler.Listener {
+        @Override
+        public void onResponseFetched(HttpRequestHandler.MyResult result) {
+            // TODO: handle the json response
+        }
+
+        @Override
+        public void onRequestFailed() {
+            mTextView.setText("Failed to fetch close stops...");
+        }
     }
 }
