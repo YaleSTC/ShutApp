@@ -81,7 +81,7 @@ public class MainActivity extends Activity implements
                         if (status.isSuccess()) {
                             ShapeDrawable circle = new ShapeDrawable(new OvalShape());
                             circle.getPaint().setColor(Color.GREEN);
-                            circle.getShape().resize(10, 10);
+                            circle.getShape().resize(50, 50);
                             ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
                             mTextView.setText("I think I will have location for you!");
 
@@ -96,7 +96,7 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        // TODO
     }
 
     @Override
@@ -117,7 +117,7 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        // TODO
     }
 
     @Override
