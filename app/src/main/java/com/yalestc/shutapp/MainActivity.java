@@ -26,8 +26,13 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -153,21 +158,65 @@ public class MainActivity extends Activity implements
         headers.put("X-Mashape-Key", "fz7Q6hHUCXmshuArB2putNEJEWoup10QP7sjsnCuGdQZDKdGPg");
         headers.put("Accept", "application/json");
 
+        Log.e("asd", "Querying " + builder.toString());
+
         // execute the http api query
         HttpRequestHandler reqHandler = new HttpRequestHandler(
                 this,
                 builder.toString(),
                 headers,
                 new stopsFetchedListener(),
-                true);
+                false);
         reqHandler.execute();
     }
 
     // Handler for received stops response.
     private class stopsFetchedListener implements HttpRequestHandler.Listener {
+
+        private Vector<Stop> mStops;
+
+        private class Stop {
+            public String name;
+            public int stopID;
+            public float lat;
+            public float lng;
+
+            Stop(String n, int c, int la, int ln) {
+                this.name = n;
+                this.stopID = c;
+                this.lat = la;
+                this.lng = ln;
+            }
+        }
+
         @Override
         public void onResponseFetched(HttpRequestHandler.MyResult result) {
-            // TODO: handle the json response
+            try {
+                JSONArray stopInfo = ((JSONObject)result.myObject).getJSONArray("data");
+                if (stopInfo.length() == 0) {
+                    mTextView.setText("It seems there are no stops close to you!");
+                    return;
+                } else {
+                    mTextView.setText("We've found " + stopInfo.length() + " stops close to you!");
+                }
+
+                JSONObject tmpObj;
+                for (int i = 0; i < stopInfo.length(); i++) {
+                    tmpObj = stopInfo.getJSONObject(i);
+                    mStops.add(new Stop(
+                            tmpObj.getString("name"),
+                            tmpObj.getInt("stop_id"),
+                            tmpObj.getJSONObject("location").getInt("lat"),
+                            tmpObj.getJSONObject("location").getInt("lng")
+                    ));
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+                // TODO: change this to something more presentable.
+                mTextView.setText("Shit went wrong...");
+                return;
+            }
         }
 
         @Override
