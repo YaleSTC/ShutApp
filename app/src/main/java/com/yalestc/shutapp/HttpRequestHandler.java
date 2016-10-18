@@ -3,7 +3,8 @@ package com.yalestc.shutapp;
 /**
  * Originally created by Steph Ree for All Around Yale.
  * <p>
- * Repurposed and modified by Stan Swidwinski
+ * Repurposed and modified by Stan Swidwinski. Mostly cut down the functionality for readability and
+ * conciseness.
  */
 
 import android.app.Activity;
@@ -28,10 +29,6 @@ import java.net.URL;
 
 public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandler.MyResult> {
 
-    public enum ResultObjectType {
-        JSONARRAY, JSONOBJECT, UNKNOWN
-    }
-
     // NEW: We have to return multiple values for some calls because the getNumAvailable/getTotal
     // return exactly the same data format.  Add a String[] so we can store multiple kinds of data.
     public class MyResult {
@@ -44,17 +41,10 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
         }
     }
 
-    // the laundry API is broken as we all know, so often times the http request will return
-    // a FileNotFound exception. Retrying seems to fix this. Look at the method getHTTPResponse()
-    // below (the catch block at the bottom). Oh and 3 is an arbitrary number, but 2 doesn't work
-    // 100% of the time. So it's safer to use 3 or more (I know it says retries, but it's really
-    // just the total number of attempts before we just give up).
-
     private static final int MAX_RETRIES = 3;
     private int tries;
 
     private final Context mContext;
-    private final ResultObjectType mResultObjectType;
     private final String mRequestString;
     private final Listener mListener;
     protected ProgressDialog mStatusDialog;
@@ -62,20 +52,17 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
 
     public HttpRequestHandler(
             Context context,
-            ResultObjectType resultObjectType,
             String requestString,
             Listener listener) {
-        this(context, resultObjectType, requestString, listener, true);
+        this(context, requestString, listener, true);
     }
 
     public HttpRequestHandler(
             Context context,
-            ResultObjectType resultObjectType,
             String requestString,
             Listener listener,
             boolean shouldShowStatusDialog) {
         mContext = context;
-        mResultObjectType = resultObjectType;
         mRequestString = requestString;
         mListener = listener;
         tries = 0;
@@ -147,38 +134,17 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
             if (urlConnection != null) {
-                if (mResultObjectType == ResultObjectType.JSONARRAY) {
-                    Uri uri = Uri.parse(mRequestString);
-                    String[] params = {uri.getQueryParameter("location")};
+                Uri uri = Uri.parse(mRequestString);
+                String[] params = {uri.getQueryParameter("method"), uri.getQueryParameter("location")};
 
-                    try {
-                        return new MyResult(
-                                new JSONArray(convertInputStreamToString(urlConnection.getInputStream())),
-                                params);
-                    } catch (JSONException e) {
-                        Log.e("JSONException", e.toString());
-                        return null;
-                    }
-                } else if (mResultObjectType == ResultObjectType.JSONOBJECT) {
-                    Uri uri = Uri.parse(mRequestString);
-                    String[] params = {uri.getQueryParameter("method"), uri.getQueryParameter("location")};
-
-                    try {
-                        return new MyResult(
-                                new JSONObject(convertInputStreamToString(urlConnection.getInputStream())),
-                                params);
-                    } catch (JSONException e) {
-                        Log.e("JSONException", e.toString());
-                        return null;
-                    }
-                } else {
-                    Log.d("HttpRequestHandler", "Sorry, an HTTP responses of "
-                            + mResultObjectType.toString() + " is not supported yet");
+                try {
+                    return new MyResult(
+                            new JSONObject(convertInputStreamToString(urlConnection.getInputStream())),
+                            params);
+                } catch (JSONException e) {
+                    Log.e("JSONException", e.toString());
                     return null;
                 }
-            } else {
-                Log.d("HttpRequestHandler", "HTTP response was empty");
-                return null;
             }
         } catch (IOException e) {
             Log.e("HttpRequestHandler", e.toString());
