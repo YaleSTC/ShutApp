@@ -155,6 +155,9 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
 
             return this.getHTTPResponse();
         }
+
+        // This should never be hit. Adding for compiler satisfaction.
+        return null;
     }
 
     private String convertInputStreamToString(InputStream stream) {
