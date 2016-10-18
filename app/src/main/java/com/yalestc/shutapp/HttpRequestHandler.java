@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 
 public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandler.MyResult> {
 
@@ -46,6 +47,7 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
 
     private final Context mContext;
     private final String mRequestString;
+    private final Map<String, String> mHeaders;
     private final Listener mListener;
     protected ProgressDialog mStatusDialog;
     private final boolean mShouldShowStatusDialog;
@@ -53,17 +55,20 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
     public HttpRequestHandler(
             Context context,
             String requestString,
+            Map<String, String> headers,
             Listener listener) {
-        this(context, requestString, listener, true);
+        this(context, requestString, headers, listener, true);
     }
 
     public HttpRequestHandler(
             Context context,
             String requestString,
+            Map<String, String> headers,
             Listener listener,
             boolean shouldShowStatusDialog) {
         mContext = context;
         mRequestString = requestString;
+        mHeaders = headers;
         mListener = listener;
         tries = 0;
         mShouldShowStatusDialog = shouldShowStatusDialog;
@@ -132,6 +137,9 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
         try {
             URL url = new URL(mRequestString);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            for (Map.Entry<String, String> elt : mHeaders.entrySet()) {
+                urlConnection.setRequestProperty(elt.getKey(), elt.getValue());
+            }
 
             if (urlConnection != null) {
                 Uri uri = Uri.parse(mRequestString);
