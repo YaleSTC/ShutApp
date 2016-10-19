@@ -130,9 +130,10 @@ public class MainActivity extends Activity implements
         mTextView.setText("Your location has been found. Fetching Shuttle info...");
 
         // Send a message to the phone requesting data from the translock api
-        String locationInfo = location.getLongitude() +
-                "," +
+        String locationInfo =
                 location.getLatitude() +
+                "," +
+                location.getLongitude() +
                 "|" +
                 "500";
         (new RequestDataFromHandheld("/get_translock_data", locationInfo, mApiClient)).start();

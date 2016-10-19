@@ -65,6 +65,7 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
             Map<String, String> headers,
             Listener listener,
             boolean shouldShowStatusDialog) {
+        Log.d("asd", "creating http request handler");
         mContext = context;
         mRequestString = requestString;
         mHeaders = headers;
@@ -101,6 +102,7 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
     @Override
     protected MyResult doInBackground(String... params) {
         if (isOnline(mContext)) {
+            Log.d("doInBackground", "Begun");
             return getHTTPResponse();
         } else {
             cancel(true);
@@ -140,11 +142,13 @@ public class HttpRequestHandler extends AsyncTask<String, Void, HttpRequestHandl
                 urlConnection.setRequestProperty(elt.getKey(), elt.getValue());
             }
 
+            Log.d("getHTTPResponse", "Awaiting response.");
             if (urlConnection != null) {
                 Uri uri = Uri.parse(mRequestString);
                 String[] params = {uri.getQueryParameter("method"), uri.getQueryParameter("location")};
 
                 try {
+                    Log.d("getHTTPResponse", "attempting to return...");
                     return new MyResult(
                             new JSONObject(convertInputStreamToString(urlConnection.getInputStream())),
                             params);
