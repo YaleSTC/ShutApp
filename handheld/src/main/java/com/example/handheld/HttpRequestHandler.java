@@ -1,4 +1,4 @@
-package com.yalestc.shutapp;
+package com.example.handheld;
 
 /**
  * Originally created by Steph Ree for All Around Yale.
@@ -16,7 +16,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
