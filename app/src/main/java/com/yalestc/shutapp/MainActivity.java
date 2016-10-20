@@ -64,7 +64,7 @@ public class MainActivity extends Activity implements
                 Log.d(TAG, "onLayoutInflated");
                 mPreload = (RelativeLayout) stub.findViewById(R.id.pre_loading_stuff);
                 mTextView = (TextView) stub.findViewById(R.id.text);
-                GPSStatusText = (TextView) stub.findViewById(R.id.gps_status_Text);
+                GPSStatusText = (TextView) stub.findViewById(R.id.gps_status);
 //                gpsStatusCircle = (ImageView) stub.findViewById(R.id.gps_status_circle);
 
                 // Get the list component from the layout of the activity
@@ -76,8 +76,7 @@ public class MainActivity extends Activity implements
                 Log.d(TAG, "onLayoutInflated finished");
             }
         });
-
-
+        
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Wearable.API)
