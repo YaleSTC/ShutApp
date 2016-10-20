@@ -22,7 +22,11 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
+
+import java.io.UnsupportedEncodingException;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -95,6 +99,9 @@ public class MainActivity extends Activity implements
                         }
                     }
                 });
+
+        // register a listener
+        Wearable.MessageApi.addListener(mApiClient, new WearableListener());
     }
 
     @Override
@@ -108,14 +115,24 @@ public class MainActivity extends Activity implements
         mApiClient.connect();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+    private void cleanUp() {
         if (mApiClient.isConnected()) {
             LocationServices.FusedLocationApi
                     .removeLocationUpdates(mApiClient, this);
         }
         mApiClient.disconnect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        cleanUp();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cleanUp();
     }
 
     @Override
@@ -136,7 +153,33 @@ public class MainActivity extends Activity implements
                 location.getLongitude() +
                 "|" +
                 "500";
-        (new RequestDataFromHandheld("/get_translock_data", locationInfo, mApiClient)).start();
+        (new RequestDataFromHandheld("/get_transloc_data", locationInfo, mApiClient)).start();
+    }
+
+
+    // wearable listener
+    private class WearableListener implements MessageApi.MessageListener
+    {
+        @Override
+        public void onMessageReceived(MessageEvent messageEvent)
+        {
+            String event = messageEvent.getPath();
+            Log.e("asd", "received message with event: " + event);
+
+            if (event.equals("/push_shuttle_info")) {
+                String shuttleData;
+                try {
+                    shuttleData = new String(messageEvent.getData(), "UTF8");
+                } catch (UnsupportedEncodingException e) {
+                    Log.d("asd", "Unsupported encoding");
+                    return;
+                }
+
+                // TODO: parse info
+                mTextView.setText(shuttleData);
+
+            }
+        }
     }
 
 }
