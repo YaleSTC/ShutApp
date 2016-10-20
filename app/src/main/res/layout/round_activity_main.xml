@@ -1,62 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--xmlns:tools="http://schemas.android.com/tools"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--tools:context="com.yalestc.shutapp.MainActivity"-->
-    <!--tools:deviceIds="wear_round">-->
-
-    <!--<TextView-->
-        <!--android:id="@+id/text"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_centerHorizontal="true"-->
-        <!--android:layout_centerVertical="true"-->
-        <!--android:text="@string/testing_round_ks" />-->
-
-    <!--<RelativeLayout-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_below="@id/text"-->
-        <!--android:layout_centerHorizontal="true">-->
-
-        <!--<TextView-->
-            <!--android:id="@+id/gps_status"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="GPS status:  "/>-->
-
-        <!--<ImageView-->
-            <!--android:id="@+id/gps_status_circle"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_toRightOf="@id/gps_status"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--/>-->
-    <!--</RelativeLayout>-->
-<!--</RelativeLayout>-->
-
-
-<android.support.wearable.view.BoxInsetLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     tools:context="com.yalestc.shutapp.MainActivity"
     tools:deviceIds="wear_round">
 
-    <FrameLayout
-        android:id="@+id/frame_layout"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        app:layout_box="left|bottom|right">
+    <RelativeLayout
+        android:id="@+id/pre_loading_stuff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true">
 
-        <android.support.wearable.view.WearableListView
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="@string/testing_round_ks" />
+
+        <TextView
+            android:id="@+id/gps_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/text"
+            android:text="GPS status:  "/>
+
+        <TextView
+            android:id="@+id/gps_status_Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/gps_status"
+            android:layout_centerVertical="true"
+            android:text="OFF"
+            android:textColor="@color/red"
+            />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true">
+
+        <android.support.wearable.view.BoxInsetLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/wearable_list"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
             android:layout_height="match_parent"
-            android:layout_width="match_parent"/>
-    </FrameLayout>
-</android.support.wearable.view.BoxInsetLayout>
+            android:layout_width="match_parent"
+            tools:context="com.yalestc.shutapp.MainActivity"
+            tools:deviceIds="wear_round"
+            android:visibility="gone"
+            android:id="@+id/outer_list_view">
+
+            <FrameLayout
+                android:id="@+id/frame_layout"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                app:layout_box="left|bottom|right">
+
+                <android.support.wearable.view.WearableListView
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:id="@+id/wearable_list"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"/>
+            </FrameLayout>
+        </android.support.wearable.view.BoxInsetLayout>
+
+    </RelativeLayout>
+</RelativeLayout>
 

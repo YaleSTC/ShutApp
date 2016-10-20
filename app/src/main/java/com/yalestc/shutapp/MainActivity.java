@@ -3,16 +3,17 @@ package com.yalestc.shutapp;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.wearable.view.BoxInsetLayout;
 import android.support.wearable.view.WatchViewStub;
 import android.support.wearable.view.WearableListView;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.Manifest;
 
@@ -39,9 +40,12 @@ public class MainActivity extends Activity implements
     // Necessary for the unified google services.
     private GoogleApiClient mApiClient;
     private TextView mTextView;
+    private TextView GPSStatusText;
     private ImageView gpsStatusCircle;
     // ListView contains the elements and colors passed to it
     private WearableListView mListView;
+    private BoxInsetLayout mOuterLayout;
+    private RelativeLayout mPreload;
 
     // Sample dataset for the list
     private String[] elements = { "List Item 1", "List Item 2", "List Item 3" };
@@ -58,7 +62,9 @@ public class MainActivity extends Activity implements
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 Log.d(TAG, "onLayoutInflated");
-//                mTextView = (TextView) stub.findViewById(R.id.text);
+                mPreload = (RelativeLayout) stub.findViewById(R.id.pre_loading_stuff);
+                mTextView = (TextView) stub.findViewById(R.id.text);
+                GPSStatusText = (TextView) stub.findViewById(R.id.gps_status_Text);
 //                gpsStatusCircle = (ImageView) stub.findViewById(R.id.gps_status_circle);
 
                 // Get the list component from the layout of the activity
@@ -66,6 +72,7 @@ public class MainActivity extends Activity implements
 
                 // Assign an adapter to the list
                 mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
+                mOuterLayout = (BoxInsetLayout) stub.findViewById(R.id.outer_list_view);
                 Log.d(TAG, "onLayoutInflated finished");
             }
         });
@@ -106,21 +113,15 @@ public class MainActivity extends Activity implements
                 .setResultCallback(new ResultCallback() {
                     @Override
                     public void onResult(@NonNull Result result) {
-//                        Status status = result.getStatus();
-//                        if (status.isSuccess()) {
-////                            // TODO: make this UI work. No clue why it doesn't draw lol.
-////                            ShapeDrawable circle = new ShapeDrawable(new OvalShape());
-////                            circle.getPaint().setColor(Color.GREEN);
-////                            circle.getShape().resize(50, 50);
-////                            ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
-////                            mTextView.setText("GPS connected.");
-////                            Log.d("asD", "GPS service connected.");
-//                            elements = new String[]{"New list 1", "New list 2", "New list 3"};
-//                            mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
-//                        } else {
-//                            mTextView.setText("Cannot fetch your location. Will try again!");
-//                            Log.e("asd", "GPS service could not be connected/");
-//                        }
+                        Status status = result.getStatus();
+                        if (status.isSuccess()) {
+                            GPSStatusText.setText("ON");
+                            GPSStatusText.setTextColor(Color.GREEN);
+                            Log.d("asd", "GPS service connected.");
+                        } else {
+                            mTextView.setText("Cannot fetch your location. Will try again!");
+                            Log.e("asd", "GPS service could not be connected/");
+                        }
                     }
                 });
 
@@ -200,6 +201,9 @@ public class MainActivity extends Activity implements
                 }
 
                 // TODO: parse info
+                mPreload.setVisibility(View.GONE);
+                mOuterLayout.setVisibility(View.VISIBLE);
+                // TODO set stuff  here
                 mTextView.setText(shuttleData);
 
             }

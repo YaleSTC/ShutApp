@@ -3,23 +3,28 @@
     android:gravity="center_vertical"
     android:layout_width="match_parent"
     android:layout_height="80dp">
-    <shape xmlns:android="http://schemas.android.com/apk/res/android"
-        android:shape="oval">
-        android:id="@+id/circle"
-        android:layout_height="20dp"
-        android:layout_margin="16dp"
-        android:layout_width="20dp"
-        <solid
-            android:color="#48b3ff"/>
-    </shape>
-    <TextView
-        android:id="@+id/name"
-        android:gravity="center_vertical|left"
+
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_marginRight="16dp"
-        android:layout_height="match_parent"
-        android:fontFamily="sans-serif-condensed-light"
-        android:lineSpacingExtra="-4sp"
-        android:textColor="@color/black"
-        android:textSize="16sp"/>
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/blob"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/route_color"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:id="@+id/name"
+            android:gravity="center_vertical|left"
+            android:layout_width="wrap_content"
+            android:layout_toRightOf="@id/blob"
+            android:layout_height="match_parent"
+            android:fontFamily="sans-serif-condensed-light"
+            android:lineSpacingExtra="-4sp"
+            android:textColor="@color/white"
+            android:textSize="16sp"/>
+
+    </RelativeLayout>
 </com.yalestc.shutapp.WearableListItemLayout>

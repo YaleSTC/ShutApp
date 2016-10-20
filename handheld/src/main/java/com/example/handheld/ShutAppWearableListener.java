@@ -12,7 +12,6 @@ import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
@@ -353,16 +352,14 @@ public class ShutAppWearableListener extends WearableListenerService implements
                             responseToWatch += "|" + routeToColor.get(tmpRouteID) + ",";
                             responseToWatch += tmpEstimate.getString("arrival_at");
                         }
-
                     }
-
                 }
 
                 Log.d("asd", responseToWatch);
                 sendResponseToWatch(responseToWatch);
 
             } catch (JSONException e) {
-                Log.d("asd", "vehiclesFetchedListener: Shit went south!" + e.getMessage());
+                Log.e("asd", "vehiclesFetchedListener: Shit went south!" + e.getMessage());
                 sendResponseToWatch("ERROR");
                 return;
             }
