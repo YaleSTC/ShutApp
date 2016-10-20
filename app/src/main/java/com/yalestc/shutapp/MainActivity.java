@@ -211,7 +211,6 @@ public class MainActivity extends Activity implements
                     String[] colorTimeSplit = splitData[i].split(",");
                     colors.add(colorTimeSplit[0]);
 
-                    // TODO TIMESTAMPS OMG
                     // Parse the human readable date/time/timezone to get mins from now
                     String time = colorTimeSplit[1].substring(0, 19);
                     SimpleDateFormat dfm = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss");
@@ -229,7 +228,6 @@ public class MainActivity extends Activity implements
 
                 initialLayout.setVisibility(View.GONE);
                 stopListContainer.setVisibility(View.VISIBLE);
-                // TODO set stuff  here
                 initialText.setText(shuttleData);
             }
         }
