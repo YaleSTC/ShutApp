@@ -95,6 +95,7 @@ public class MainActivity extends Activity implements
                             Manifest.permission.ACCESS_COARSE_LOCATION},
                     200);
             Log.d("onConnect", "Permissions requested!");
+            return;
         }
 
         // register the request and the inline the callback definition.

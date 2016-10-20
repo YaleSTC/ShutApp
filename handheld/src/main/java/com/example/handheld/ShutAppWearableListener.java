@@ -26,7 +26,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -69,7 +68,7 @@ public class ShutAppWearableListener extends WearableListenerService implements
     }
 
     // a hardcoded set of headers necessary for transloc API
-    private static HashMap<String, String> translocAPIHeaders;
+    private static HashMap<String, String> translocAPIHeaders = new HashMap<String, String>();
 
     private static final String YALE_AGENCY_ID = "128";
 
