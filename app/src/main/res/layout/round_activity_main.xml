@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_centerInParent="true"
     tools:context="com.yalestc.shutapp.MainActivity"
     tools:deviceIds="wear_round">
 
@@ -19,21 +20,22 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
-            android:text="@string/testing_round_ks" />
+            android:text="Trying to get your GPS..."
+            android:paddingBottom="10dp"/>
 
         <TextView
-            android:id="@+id/gps_status"
+            android:id="@+id/gps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/text"
             android:text="GPS status:  "/>
 
         <TextView
-            android:id="@+id/gps_status_Text"
+            android:id="@+id/gps_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/gps_status"
-            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/gps"
+            android:layout_below="@+id/text"
             android:text="OFF"
             android:textColor="@color/red"
             />
