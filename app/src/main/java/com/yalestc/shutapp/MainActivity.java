@@ -29,6 +29,8 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +46,7 @@ public class MainActivity extends Activity implements
     private TextView GPSStatusText;
     private BoxInsetLayout stopListContainer;
     private RelativeLayout initialLayout;
+    private WearableListView mListView;
 
     // Sample dataset for the list
     private List<String> times;
@@ -65,7 +68,7 @@ public class MainActivity extends Activity implements
                 GPSStatusText = (TextView) stub.findViewById(R.id.gps_status);
 
                 // Get the list component from the layout of the activity
-                WearableListView mListView = (WearableListView) stub.findViewById(R.id.wearable_list);
+                mListView = (WearableListView) stub.findViewById(R.id.wearable_list);
 
                 Log.d("onCreate", "onLayoutInflated finished");
             }
@@ -211,14 +214,18 @@ public class MainActivity extends Activity implements
                     // TODO TIMESTAMPS OMG
                     // Parse the human readable date/time/timezone to get mins from now
                     String time = colorTimeSplit[1].substring(0, 19);
-                    DateTime dateTime = new DateTime( "2014-09-01T19:22:43.000Z" );
-                    "yyyy-MM-ddTHH:mm:ss"
-                    long mins =
-                    times.add(mins);
+                    SimpleDateFormat dfm = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss");
+                    long unixtime = 0;
+                    try {
+                        unixtime = (dfm.parse(time).getTime()) / 1000;
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    long mins = (unixtime - now) / 60;
+                    times.add(stop + ", "+ String.valueOf(mins) + " mins");
                 }
                 // Assign an adapter to the list
                 mListView.setAdapter(new Adapter(getApplicationContext(), times, colors));
-                mOuterLayout = (BoxInsetLayout) stub.findViewById(R.id.outer_list_view);
 
                 initialLayout.setVisibility(View.GONE);
                 stopListContainer.setVisibility(View.VISIBLE);

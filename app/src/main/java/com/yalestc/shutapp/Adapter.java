@@ -56,7 +56,8 @@ public final class Adapter extends WearableListView.Adapter {
         ItemViewHolder itemHolder = (ItemViewHolder) holder;
         TextView view = itemHolder.textView;
         // replace text contents
-        view.setText(mTimes[position]);
+        view.setText(mTimes.get(position));
+        view.setTextColor(Integer.parseInt(mColors.get(position)));
         // replace list item's metadata
         holder.itemView.setTag(position);
     }

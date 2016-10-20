@@ -23,7 +23,7 @@
             android:layout_height="match_parent"
             android:fontFamily="sans-serif-condensed-light"
             android:lineSpacingExtra="-4sp"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="16sp"/>
 
     </RelativeLayout>
