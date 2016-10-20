@@ -21,16 +21,25 @@ public class PushDataToWatch extends Thread
     GoogleApiClient mClient;
 
     // Constructor to send a message to the data layer
-    PushDataToWatch(String p, String msg, GoogleApiClient client) {
+    PushDataToWatch(String p, String msg, GoogleApiClient client)
+    {
+        Log.d("asd", "PushDataToWatch constructor");
         path = p;
         message = msg;
         mClient = client;
+
+        if(!mClient.isConnected()){
+            mClient.connect();
+            Log.d("asd", "Connecting to mClient...");
+        }
     }
 
-    public void run() {
+    public void run()
+    {
         NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mClient).await();
 
         for (Node node : nodes.getNodes()) {
+            Log.d("asd", "pushing to node " + node.getDisplayName());
             MessageApi.SendMessageResult result =
                     null;
             try {
@@ -41,17 +50,18 @@ public class PushDataToWatch extends Thread
                                 path,
                                 message.getBytes("UTF8"))
                         .await();
+                Log.d("asd", "Successfully pushed to the watch!");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
-                Log.d("ASD", String.valueOf(e.getStackTrace()));
+                Log.d("asd", String.valueOf(e.getStackTrace()));
                 return;
             }
             if (result.getStatus().isSuccess()) {
-                Log.d("myTag", "Message: {" + message + "} sent to: " + node.getDisplayName());
+                Log.d("asd", "Message: {" + message + "} sent to: " + node.getDisplayName());
             }
             else {
                 // Log an error
-                Log.e("myTag", "ERROR: failed to send Message");
+                Log.e("asd", "ERROR: failed to send Message");
             }
         }
     }

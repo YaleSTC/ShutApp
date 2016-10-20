@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
@@ -162,6 +163,7 @@ public class ShutAppWearableListener extends WearableListenerService implements
     @Override
     public void onConnected(@Nullable Bundle bundle)
     {
+        Log.d("asd", "I'm connected! #cloud");
         // TODO: do we need anything here?
     }
 
@@ -174,6 +176,7 @@ public class ShutAppWearableListener extends WearableListenerService implements
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult)
     {
+        Log.d("asd", "I suck...");
         // TODO
     }
 
@@ -243,6 +246,10 @@ public class ShutAppWearableListener extends WearableListenerService implements
                     }
                 });
 
+                for(Stop s : mStops) {
+                    Log.d("asd", s.address);
+                }
+
                 // get all route numbers for the nearest stop
                 Stop closest = mStops.get(0);
                 tmpObj = stopInfo.getJSONObject(closest.index);
@@ -259,11 +266,6 @@ public class ShutAppWearableListener extends WearableListenerService implements
 
                 // perform call
                 callVehiclesApi(routes, closest.stopID, closest.address);
-
-//
-//                for(Stop s : mStops) {
-//                    Log.d("asd", s.address);
-//                }
 
 
             } catch (JSONException e) {
@@ -301,6 +303,15 @@ public class ShutAppWearableListener extends WearableListenerService implements
         private void sendResponseToWatch(String response)
         {
             (new PushDataToWatch("/push_shuttle_info", response, mApiClient)).start();
+//            Log.d("asd", "starting to push...");
+//            Thread t = new PushDataToWatch("/push_shuttle_info", response, mApiClient);
+//            t.start();
+//            try {
+//                t.join();
+//                Log.d("asd", "pushed.");
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
 
         }
 
@@ -347,10 +358,12 @@ public class ShutAppWearableListener extends WearableListenerService implements
 
                 }
 
+                Log.d("asd", responseToWatch);
                 sendResponseToWatch(responseToWatch);
 
             } catch (JSONException e) {
-                Log.d("asd", "vehiclesFetchedListener: Shit went south! " + e.getMessage());
+                Log.d("asd", "vehiclesFetchedListener: Shit went south!" + e.getMessage());
+                sendResponseToWatch("ERROR");
                 return;
             }
         }
