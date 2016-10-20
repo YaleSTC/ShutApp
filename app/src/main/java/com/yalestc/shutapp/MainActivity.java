@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.wearable.view.WatchViewStub;
+import android.support.wearable.view.WearableListView;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -33,19 +34,34 @@ public class MainActivity extends Activity implements
     private GoogleApiClient mApiClient;
     private TextView mTextView;
     private ImageView gpsStatusCircle;
+    // ListView contains the elements and colors passed to it
+    private WearableListView mListView;
+
+    // Sample dataset for the list
+    private String[] elements = { "List Item 1", "List Item 2", "List Item 3" };
+    private String[] colors = {"#ffffff", "#ffffff", "#ffffff"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Set layout
         setContentView(R.layout.activity_main);
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-                mTextView = (TextView) stub.findViewById(R.id.text);
-                gpsStatusCircle = (ImageView) stub.findViewById(R.id.gps_status_circle);
+//                mTextView = (TextView) stub.findViewById(R.id.text);
+//                gpsStatusCircle = (ImageView) stub.findViewById(R.id.gps_status_circle);
+
+                // Get the list component from the layout of the activity
+                mListView =
+                        (WearableListView) stub.findViewById(R.id.wearable_list);
+
+                // Assign an adapter to the list
+                mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
             }
         });
+
 
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -82,13 +98,15 @@ public class MainActivity extends Activity implements
                     public void onResult(@NonNull Result result) {
                         Status status = result.getStatus();
                         if (status.isSuccess()) {
-                            // TODO: make this UI work. No clue why it doesn't draw lol.
-                            ShapeDrawable circle = new ShapeDrawable(new OvalShape());
-                            circle.getPaint().setColor(Color.GREEN);
-                            circle.getShape().resize(50, 50);
-                            ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
-                            mTextView.setText("GPS connected.");
-                            Log.d("asD", "GPS service connected.");
+//                            // TODO: make this UI work. No clue why it doesn't draw lol.
+//                            ShapeDrawable circle = new ShapeDrawable(new OvalShape());
+//                            circle.getPaint().setColor(Color.GREEN);
+//                            circle.getShape().resize(50, 50);
+//                            ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
+//                            mTextView.setText("GPS connected.");
+//                            Log.d("asD", "GPS service connected.");
+                            elements = new String[]{"New list 1", "New list 2", "New list 3"};
+                            mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
                         } else {
                             mTextView.setText("Cannot fetch your location. Will try again!");
                             Log.e("asd", "GPS service could not be connected/");
