@@ -1,4 +1,4 @@
-<com.example.android.support.wearable.notifications.WearableListItemLayout
+<com.yalestc.shutapp.WearableListItemLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:gravity="center_vertical"
     android:layout_width="match_parent"
@@ -22,4 +22,4 @@
         android:lineSpacingExtra="-4sp"
         android:textColor="@color/black"
         android:textSize="16sp"/>
-</com.example.android.support.wearable.notifications.WearableListItemLayout>
+</com.yalestc.shutapp.WearableListItemLayout>

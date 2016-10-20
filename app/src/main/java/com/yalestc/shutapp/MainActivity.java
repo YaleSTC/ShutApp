@@ -35,6 +35,7 @@ public class MainActivity extends Activity implements
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
+    private static final String TAG = "MainActivity";
     // Necessary for the unified google services.
     private GoogleApiClient mApiClient;
     private TextView mTextView;
@@ -49,21 +50,23 @@ public class MainActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         // Set layout
         setContentView(R.layout.activity_main);
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
+                Log.d(TAG, "onLayoutInflated");
 //                mTextView = (TextView) stub.findViewById(R.id.text);
 //                gpsStatusCircle = (ImageView) stub.findViewById(R.id.gps_status_circle);
 
                 // Get the list component from the layout of the activity
-                mListView =
-                        (WearableListView) stub.findViewById(R.id.wearable_list);
+                mListView = (WearableListView) stub.findViewById(R.id.wearable_list);
 
                 // Assign an adapter to the list
                 mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
+                Log.d(TAG, "onLayoutInflated finished");
             }
         });
 
@@ -103,21 +106,21 @@ public class MainActivity extends Activity implements
                 .setResultCallback(new ResultCallback() {
                     @Override
                     public void onResult(@NonNull Result result) {
-                        Status status = result.getStatus();
-                        if (status.isSuccess()) {
-//                            // TODO: make this UI work. No clue why it doesn't draw lol.
-//                            ShapeDrawable circle = new ShapeDrawable(new OvalShape());
-//                            circle.getPaint().setColor(Color.GREEN);
-//                            circle.getShape().resize(50, 50);
-//                            ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
-//                            mTextView.setText("GPS connected.");
-//                            Log.d("asD", "GPS service connected.");
-                            elements = new String[]{"New list 1", "New list 2", "New list 3"};
-                            mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
-                        } else {
-                            mTextView.setText("Cannot fetch your location. Will try again!");
-                            Log.e("asd", "GPS service could not be connected/");
-                        }
+//                        Status status = result.getStatus();
+//                        if (status.isSuccess()) {
+////                            // TODO: make this UI work. No clue why it doesn't draw lol.
+////                            ShapeDrawable circle = new ShapeDrawable(new OvalShape());
+////                            circle.getPaint().setColor(Color.GREEN);
+////                            circle.getShape().resize(50, 50);
+////                            ((ImageView) findViewById(R.id.gps_status_circle)).setImageDrawable(circle);
+////                            mTextView.setText("GPS connected.");
+////                            Log.d("asD", "GPS service connected.");
+//                            elements = new String[]{"New list 1", "New list 2", "New list 3"};
+//                            mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
+//                        } else {
+//                            mTextView.setText("Cannot fetch your location. Will try again!");
+//                            Log.e("asd", "GPS service could not be connected/");
+//                        }
                     }
                 });
 
