@@ -30,6 +30,9 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -48,8 +51,8 @@ public class MainActivity extends Activity implements
     private RelativeLayout mPreload;
 
     // Sample dataset for the list
-    private String[] elements = { "List Item 1", "List Item 2", "List Item 3" };
-    private String[] colors = {"#ffffff", "#ffffff", "#ffffff"};
+    private List<String> times;
+    private List<String> colors;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +73,6 @@ public class MainActivity extends Activity implements
                 // Get the list component from the layout of the activity
                 mListView = (WearableListView) stub.findViewById(R.id.wearable_list);
 
-                // Assign an adapter to the list
-                mListView.setAdapter(new Adapter(getApplicationContext(), elements, colors));
-                mOuterLayout = (BoxInsetLayout) stub.findViewById(R.id.outer_list_view);
                 Log.d(TAG, "onLayoutInflated finished");
             }
         });
@@ -171,7 +171,7 @@ public class MainActivity extends Activity implements
     public void onLocationChanged(Location location) {
         mTextView.setText("Your location has been found. Fetching Shuttle info...");
 
-        // Send a message to the phone requesting data from the translock api
+        // Send a message to the phone requesting data from the Transloc api
         String locationInfo =
                 location.getLatitude() +
                 "," +
@@ -200,7 +200,33 @@ public class MainActivity extends Activity implements
                     return;
                 }
 
-                // TODO: parse info
+                // Parse the information
+                String[] splitData = event.split("\\|");
+                int size = splitData.length;
+                // Set the time and color lists
+                times = new ArrayList<>();
+                colors = new ArrayList<>();
+
+                String stop = splitData[0];
+                // Go through the data and add the time and route color to the right lists
+                // Entries in split_data are formatted like "<color_num>,<date_time_string>"
+                long now = System.currentTimeMillis() / 1000L;
+                for (int i = 1; i < size; i++) {
+                    String[] colorTimeSplit = splitData[i].split(",");
+                    colors.add(colorTimeSplit[0]);
+
+                    // TODO TIMESTAMPS OMG
+                    // Parse the human readable date/time/timezone to get mins from now
+                    String time = colorTimeSplit[1].substring(0, 19);
+                    DateTime dateTime = new DateTime( "2014-09-01T19:22:43.000Z" );
+                    "yyyy-MM-ddTHH:mm:ss"
+                    long mins =
+                    times.add(mins);
+                }
+                // Assign an adapter to the list
+                mListView.setAdapter(new Adapter(getApplicationContext(), times, colors));
+                mOuterLayout = (BoxInsetLayout) stub.findViewById(R.id.outer_list_view);
+
                 mPreload.setVisibility(View.GONE);
                 mOuterLayout.setVisibility(View.VISIBLE);
                 // TODO set stuff  here

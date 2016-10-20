@@ -7,21 +7,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
 /**
  * Created by Katherine on 10/19/16.
  */
 
 public final class Adapter extends WearableListView.Adapter {
-    private String[] mElements;
-    private String[] mColors;
+    private List<String> mTimes;
+    private List<String> mColors;
     private final Context mContext;
     private final LayoutInflater mInflater;
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public Adapter(Context context, String[] elements, String[] colors) {
+    public Adapter(Context context, List<String> times, List<String> colors) {
         mContext = context;
         mInflater = LayoutInflater.from(context);
-        mElements = elements;
+        mTimes = times;
         mColors = colors;
     }
 
@@ -54,7 +56,7 @@ public final class Adapter extends WearableListView.Adapter {
         ItemViewHolder itemHolder = (ItemViewHolder) holder;
         TextView view = itemHolder.textView;
         // replace text contents
-        view.setText(mElements[position]);
+        view.setText(mTimes[position]);
         // replace list item's metadata
         holder.itemView.setTag(position);
     }
@@ -63,6 +65,6 @@ public final class Adapter extends WearableListView.Adapter {
     // (invoked by the WearableListView's layout manager)
     @Override
     public int getItemCount() {
-        return mElements.length;
+        return mTimes.size();
     }
 }
