@@ -4,7 +4,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -34,16 +33,16 @@ import java.util.Vector;
  * Created by stan on 10/18/16.
  */
 
-
 public class ShutAppWearableListener extends WearableListenerService implements
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener
-{
+        GoogleApiClient.OnConnectionFailedListener {
 
     // a hardcoded map between route IDs and colors, to avoid unnecessary api calls
+    //
+    // TODO:
+    //     Transfer this to assets (color map). Leave for now.
     private static final HashMap<Integer, Integer> routeToColor;
-    static
-    {
+    static {
         routeToColor = new HashMap<Integer, Integer>();
         routeToColor.put(4003414, 0x6d8dbf);
         routeToColor.put(4004306, 0xffff00);
@@ -67,21 +66,24 @@ public class ShutAppWearableListener extends WearableListenerService implements
         routeToColor.put(4006518, 0xe9ff00);
         routeToColor.put(4007474, 0xf7adc8);
         routeToColor.put(4007666, 0xffff00);
-
     }
+
+    // a hardcoded set of headers necessary for transloc API
+    private static HashMap<String, String> translocAPIHeaders;
 
     private static final String YALE_AGENCY_ID = "128";
 
-
     double myLong;
     double myLat;
-
     // GoogleApiClient
     private GoogleApiClient mApiClient;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        translocAPIHeaders.put("X-Mashape-Key", getResources().getString(R.string.x_mashape_key));
+        translocAPIHeaders.put("Accept", "application/json");
+
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
@@ -89,24 +91,26 @@ public class ShutAppWearableListener extends WearableListenerService implements
                 .build();
     }
 
+    // fired when a message from the watch has bene received.
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         super.onMessageReceived(messageEvent);
         String event = messageEvent.getPath();
-        Log.e("asd", "received message with event: " + event);
+        Log.d("onMessageReceived", "received message with event: " + event);
 
+        // only react to transloc data requests!
         if (event.equals("/get_transloc_data")) {
             String locationData;
             try {
                 locationData = new String(messageEvent.getData(), "UTF8");
             } catch (UnsupportedEncodingException e) {
-                Log.d("asd", "Unsupported encoding");
+                Log.e("onMessageReceived", e.getMessage());
                 return;
             }
 
             Uri.Builder builder = new Uri.Builder();
-            // TODO: Parametrize this. For now everything is literally hardcoded.
-            // Prepare the URI  and headers
+            // TODO:
+            //      Parametrize this and avoid evil string hacking.
             myLong = Float.valueOf(locationData.split(",")[0]);
             myLat = Float.valueOf(locationData.split(",")[1].split("\\|")[0]);
             builder.scheme("https")
@@ -115,28 +119,25 @@ public class ShutAppWearableListener extends WearableListenerService implements
                     .appendQueryParameter("agencies", YALE_AGENCY_ID)
                     .appendQueryParameter("geo_area", locationData);
 
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("X-Mashape-Key", getResources().getString(R.string.x_mashape_key));
-            headers.put("Accept", "application/json");
-
             // execute the http api query
-            Log.d("asd", "Querying with the url: " + builder.toString());
+            Log.d("onMessageReceived", "Querying with the url: " + builder.toString());
             HttpRequestHandler reqHandler = new HttpRequestHandler(
                     this,
                     builder.toString(),
-                    headers,
+                    translocAPIHeaders,
                     new StopsFetchedListener(),
                     false);
             reqHandler.execute();
+        } else {
+            Log.e("onMessageReceived", "unrecognized event received.");
         }
-
     }
 
     // Get a string of routes, and call
-    private void callVehiclesApi(String routes, int stopID, String address)
-    {
+    private void callVehiclesApi(String routes, int stopID, String address) {
         Uri.Builder builder = new Uri.Builder();
-        // TODO: Parametrize this. For now everything is literally hardcoded.
+        // TODO: Parametrize this.
+        //       For now everything is literally hardcoded.
         // Prepare the URI  and headers
         builder.scheme("https")
                 .authority("transloc-api-1-2.p.mashape.com")
@@ -144,43 +145,36 @@ public class ShutAppWearableListener extends WearableListenerService implements
                 .appendQueryParameter("agencies", YALE_AGENCY_ID)
                 .appendQueryParameter("routes", routes);
 
-        Map<String, String> headers = new HashMap<String, String>();
-        headers.put("X-Mashape-Key", getResources().getString(R.string.x_mashape_key));
-        headers.put("Accept", "application/json");
-
         // execute the http api query
-        Log.d("asd", "Querying with the url: " + builder.toString());
+        Log.d("callVehiclesApi", "Querying with the url: " + builder.toString());
         HttpRequestHandler reqHandler = new HttpRequestHandler(
                 this,
                 builder.toString(),
-                headers,
+                translocAPIHeaders,
                 new VehiclesFetchedListener(stopID, address),
                 false);
         reqHandler.execute();
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle)
-    {
-        Log.d("asd", "I'm connected! #cloud");
-        // TODO: do we need anything here?
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d("onConnected", "I'm connected! #cloud");
+        // Note that this does not do anything. We have no additional listeners to register.
     }
 
     @Override
-    public void onConnectionSuspended(int i)
-    {
-        // TODO
+    public void onConnectionSuspended(int i) {
+        // TODO -- if we want to be robust.
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult)
-    {
-        Log.d("asd", "I suck...");
-        // TODO
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        // TODO -- if we want to be robust.
     }
 
-
-
+    private void sendResponseToWatch(String response) {
+        (new PushDataToWatch("/push_shuttle_info", response, mApiClient)).start();
+    }
 
     // Handler for received stops response.
     private class StopsFetchedListener implements HttpRequestHandler.Listener {
@@ -209,7 +203,7 @@ public class ShutAppWearableListener extends WearableListenerService implements
         public void onResponseFetched(HttpRequestHandler.MyResult result) {
             try {
                 JSONArray stopInfo = ((JSONObject) result.myObject).getJSONArray("data");
-                Log.d("asd", "Fetched " + stopInfo.length() + " stops!");
+                Log.d("StopsFetchedListener", "Fetched " + stopInfo.length() + " stops!");
 
                 JSONObject tmpObj;
                 Geocoder geo = new Geocoder(getApplicationContext(), Locale.getDefault());
@@ -228,12 +222,17 @@ public class ShutAppWearableListener extends WearableListenerService implements
                             tmpObj.getJSONObject("location").getDouble("lng"),
                             addresses.get(0).getAddressLine(0)
                     ));
-                    //    Log.d("asd", "Stop found at " + addresses.get(0).getAddressLine(0));
-
                 }
 
-                // sort by distance
-                Collections.sort(mStops, new Comparator<Stop>(){
+                // signal to the watch that no stops have been found
+                if (mStops.size() == 0) {
+                    Log.e("StopsFetchedListener", "No Nearby Stops Found");
+                    sendResponseToWatch("No Nearby Stops Found.");
+                    return;
+                }
+
+                // sort by distance -- increasingly
+                Collections.sort(mStops, new Comparator<Stop>() {
 
                     @Override
                     public int compare(Stop o1, Stop o2) {
@@ -241,13 +240,9 @@ public class ShutAppWearableListener extends WearableListenerService implements
                         float[] d2 = new float[10];
                         Location.distanceBetween(myLat, myLong, o1.lat, o1.lng, d1);
                         Location.distanceBetween(myLat, myLong, o2.lat, o2.lng, d2);
-                        return  (new Float(d2[0])).compareTo(new Float(d1[0]));
+                        return (new Float(d2[0])).compareTo(new Float(d1[0]));
                     }
                 });
-
-                for(Stop s : mStops) {
-                    Log.d("asd", s.address);
-                }
 
                 // get all route numbers for the nearest stop
                 Stop closest = mStops.get(0);
@@ -255,98 +250,73 @@ public class ShutAppWearableListener extends WearableListenerService implements
                 JSONArray routeIDs = tmpObj.getJSONArray("routes");
 
                 // parse the JSON array, into a string
-                if(routeIDs == null)
-                    throw(new JSONException("No routes!"));
+                if (routeIDs == null)
+                    throw (new JSONException("No routes!"));
 
-                // TODO: make sure we can do this
+                // ecode the data into a string.
                 String routes = routeIDs.getString(0);
-                for(int i = 1; i < routeIDs.length(); i++)
+                for (int i = 1; i < routeIDs.length(); i++)
                     routes += "," + routeIDs.getString(i);
 
                 // perform call
                 callVehiclesApi(routes, closest.stopID, closest.address);
-
-
             } catch (JSONException e) {
-                Log.d("asd", "Shit went south! " + e.getMessage());
+                Log.e("StopsFetchedListener", e.getMessage());
                 return;
             } catch (IOException e) {
-                Log.d("asd", e.getMessage());
+                Log.e("StopsFetchedListener", e.getMessage());
                 return;
             }
         }
 
         @Override
         public void onRequestFailed() {
-            Log.d("asd", "Failed to fetch close stops...");
+            Log.e("StopsFetchedListener", "Failed to fetch close stops...");
         }
     }
 
 
     // This class will fetch a vehicles JSON object, get vehicle info for a particular stop,
     // and send the results back to the watch
-    private class VehiclesFetchedListener implements HttpRequestHandler.Listener
-    {
+    private class VehiclesFetchedListener implements HttpRequestHandler.Listener {
         // The vehicles call will get all stops for each vehicle, so we need to keep
         // track of a single stop
         int stopID;
         String address;
 
-        public VehiclesFetchedListener(int stopID, String address)
-        {
+        public VehiclesFetchedListener(int stopID, String address) {
             super();
             this.stopID = stopID;
             this.address = address;
         }
 
-        private void sendResponseToWatch(String response)
-        {
-            (new PushDataToWatch("/push_shuttle_info", response, mApiClient)).start();
-//            Log.d("asd", "starting to push...");
-//            Thread t = new PushDataToWatch("/push_shuttle_info", response, mApiClient);
-//            t.start();
-//            try {
-//                t.join();
-//                Log.d("asd", "pushed.");
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-
-        }
-
         @Override
-        public void onResponseFetched(HttpRequestHandler.MyResult result)
-        {
-            try
-            {
+        public void onResponseFetched(HttpRequestHandler.MyResult result) {
+            try {
                 JSONArray vehicleInfo = ((JSONObject) result.myObject)
-                                        .getJSONObject("data")
-                                        .getJSONArray(YALE_AGENCY_ID);
-                Log.d("asd", "Fetched " + vehicleInfo.length() + " vehicles!");
+                        .getJSONObject("data")
+                        .getJSONArray(YALE_AGENCY_ID);
+                Log.d("VehiclesFetchedListener", "Fetched " + vehicleInfo.length() + " vehicles!");
 
                 // string to be returned to watch
                 String responseToWatch = this.address;
 
-                JSONObject  vehicle;
-                JSONArray   arrivalEstimates;
-                JSONObject  tmpEstimate;
-                int         tmpRouteID;
-
+                JSONObject vehicle;
+                JSONArray arrivalEstimates;
+                JSONObject tmpEstimate;
+                int tmpRouteID;
 
                 // this is an ugly loop, it'll be an exhaustive search basically
-                for (int i = 0; i < vehicleInfo.length(); i++)
-                {
+                for (int i = 0; i < vehicleInfo.length(); i++) {
                     vehicle = vehicleInfo.getJSONObject(i);
                     arrivalEstimates = vehicle.getJSONArray("arrival_estimates");
 
                     // loop through arrival estimates, and look for stopid
-                    for (int j = 0; j < arrivalEstimates.length(); j++)
-                    {
+                    for (int j = 0; j < arrivalEstimates.length(); j++) {
                         tmpEstimate = arrivalEstimates.getJSONObject(j);
 
                         // only do anything useful if the stop id is our stop id
-                        if (tmpEstimate.getInt("stop_id") == this.stopID)
-                        {
+                        if (tmpEstimate.getInt("stop_id") == this.stopID) {
                             // each entry looks like <hexColor,dateTime> with | separators
                             tmpRouteID = tmpEstimate.getInt("route_id");
                             responseToWatch += "|" + routeToColor.get(tmpRouteID) + ",";
@@ -355,17 +325,19 @@ public class ShutAppWearableListener extends WearableListenerService implements
                     }
                 }
 
-                Log.d("asd", responseToWatch);
+                Log.d("VehiclesFetchedListener", responseToWatch);
                 sendResponseToWatch(responseToWatch);
 
             } catch (JSONException e) {
-                Log.e("asd", "vehiclesFetchedListener: Shit went south!" + e.getMessage());
+                Log.e("VehiclesFetchedListener", e.getMessage());
                 sendResponseToWatch("ERROR");
                 return;
             }
         }
 
         @Override
-        public void onRequestFailed() { Log.d("asd", "Failed to fetch vehichle info!!!"); }
+        public void onRequestFailed() {
+            Log.d("VehiclesFetchedListener", "Failed to fetch vehichle info!!!");
+        }
     }
 }

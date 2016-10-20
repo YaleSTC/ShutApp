@@ -42,15 +42,15 @@ public class RequestDataFromHandheld extends Thread {
                         .await();
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
-                Log.d("ASD", String.valueOf(e.getStackTrace()));
+                Log.d("RequestDataFromHandheld", String.valueOf(e.getStackTrace()));
                 return;
             }
             if (result.getStatus().isSuccess()) {
-                Log.d("myTag", "Message: {" + message + "} sent to: " + node.getDisplayName());
+                Log.d("RequestDataFromHandheld", "Message: {" + message + "} sent to: " + node.getDisplayName());
             }
             else {
                 // Log an error
-                Log.e("myTag", "ERROR: failed to send Message");
+                Log.e("RequestDataFromHandheld", "ERROR: failed to send Message");
             }
         }
     }

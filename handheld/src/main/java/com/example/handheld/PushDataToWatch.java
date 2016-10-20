@@ -14,32 +14,29 @@ import java.io.UnsupportedEncodingException;
  * Created by FMZ on 10/19/16.
  */
 
-public class PushDataToWatch extends Thread
-{
+public class PushDataToWatch extends Thread {
     String path;
     String message;
     GoogleApiClient mClient;
 
     // Constructor to send a message to the data layer
-    PushDataToWatch(String p, String msg, GoogleApiClient client)
-    {
-        Log.d("asd", "PushDataToWatch constructor");
+    PushDataToWatch(String p, String msg, GoogleApiClient client) {
+        Log.d("PushDataToWatch", "PushDataToWatch constructor");
         path = p;
         message = msg;
         mClient = client;
 
-        if(!mClient.isConnected()){
+        if (!mClient.isConnected()) {
             mClient.connect();
-            Log.d("asd", "Connecting to mClient...");
+            Log.d("PushDataToWatch", "Connecting to mClient...");
         }
     }
 
-    public void run()
-    {
+    public void run() {
         NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mClient).await();
 
         for (Node node : nodes.getNodes()) {
-            Log.d("asd", "pushing to node " + node.getDisplayName());
+            Log.d("PushDataToWatch", "pushing to node " + node.getDisplayName());
             MessageApi.SendMessageResult result =
                     null;
             try {
@@ -50,18 +47,19 @@ public class PushDataToWatch extends Thread
                                 path,
                                 message.getBytes("UTF8"))
                         .await();
-                Log.d("asd", "Successfully pushed to the watch!");
+                Log.d("PushDataToWatch", "Successfully pushed to the watch!");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
-                Log.d("asd", String.valueOf(e.getStackTrace()));
+                Log.d("PushDataToWatch", String.valueOf(e.getStackTrace()));
                 return;
             }
             if (result.getStatus().isSuccess()) {
-                Log.d("asd", "Message: {" + message + "} sent to: " + node.getDisplayName());
-            }
-            else {
+                Log.d(
+                        "PushDataToWatch",
+                        "Message: {" + message + "} sent to: " + node.getDisplayName());
+            } else {
                 // Log an error
-                Log.e("asd", "ERROR: failed to send Message");
+                Log.e("PushDataToWatch", "ERROR: failed to send Message");
             }
         }
     }
