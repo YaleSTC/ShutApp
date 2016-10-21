@@ -168,7 +168,7 @@ public class ShutAppWearableListener extends WearableListenerService implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // TODO -- if we want to be robust.
+        Log.e("asd", "onConnectionFailed: " + connectionResult);
     }
 
     private void sendResponseToWatch(String response) {
@@ -226,7 +226,7 @@ public class ShutAppWearableListener extends WearableListenerService implements
                 // signal to the watch that no stops have been found
                 if (mStops.size() == 0) {
                     Log.e("StopsFetchedListener", "No Nearby Stops Found");
-                    sendResponseToWatch("No Nearby Stops Found.");
+                    sendResponseToWatch("ERROR: No nearby stops!");
                     return;
                 }
 
@@ -329,7 +329,7 @@ public class ShutAppWearableListener extends WearableListenerService implements
 
             } catch (JSONException e) {
                 Log.e("VehiclesFetchedListener", e.getMessage());
-                sendResponseToWatch("ERROR");
+                sendResponseToWatch("ERROR: No shuttles at this time!");
                 return;
             }
         }
