@@ -32,7 +32,6 @@ import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends Activity implements
@@ -49,9 +48,12 @@ public class MainActivity extends Activity implements
     private RelativeLayout initialLayout;
     private WearableListView mListView;
 
+    // the adapter for mlistview
+    private ShuttleListAdapter mListAdapter;
+
     // Sample dataset for the list
     private List<String> times;
-    private List<String> colors;
+    private List<Integer> colors;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,8 @@ public class MainActivity extends Activity implements
 
                 // Get the list component from the layout of the activity
                 mListView = (WearableListView) stub.findViewById(R.id.wearable_list);
+                mListAdapter = new ShuttleListAdapter(getApplicationContext(), null, null);
+                mListView.setAdapter(mListAdapter);
 
                 Log.d("onCreate", "onLayoutInflated finished");
             }
@@ -169,7 +173,7 @@ public class MainActivity extends Activity implements
     // changed.
     @Override
     public void onLocationChanged(Location location) {
-        initialText.setText("Your location has been found. Fetching Shuttle info...");
+        initialText.setText("Fetching Shuttle info...");
 
         // Send a message to the phone requesting data from the Transloc api
         // Quick and dirty.
@@ -211,21 +215,26 @@ public class MainActivity extends Activity implements
             String[] splitData = shuttleData.split("\\|");
             int size = splitData.length;
             // Set the time and color lists
-            times = new ArrayList<>();
-            colors = new ArrayList<>();
+            times = new ArrayList<String>();
+            colors = new ArrayList<Integer>();
 
             String stop = splitData[0];
+
+            // initialize times and colors
+            times.add(stop);
+            colors.add(0xffffff);
+
             // Go through the data and add the time and route color to the right lists
             // Entries in split_data are formatted like "<color_num>,<date_time_string>"
             long now = System.currentTimeMillis() / 1000L;
             for (int i = 1; i < size; i++) {
                 String[] colorTimeSplit = splitData[i].split(",");
-                colors.add(colorTimeSplit[0]);
+                colors.add(Integer.parseInt(colorTimeSplit[0]));
 
                 // TODO TIMESTAMPS OMG
                 // Parse the human readable date/time/timezone to get mins from now
                 String time = colorTimeSplit[1].substring(0, 19);
-                SimpleDateFormat dfm = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss");
+                SimpleDateFormat dfm = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
                 long unixtime = 0;
                 try {
                     unixtime = (dfm.parse(time).getTime()) / 1000;
@@ -233,15 +242,14 @@ public class MainActivity extends Activity implements
                     e.printStackTrace();
                 }
                 long mins = (unixtime - now) / 60;
-                times.add(stop + ", "+ String.valueOf(mins) + " mins");
+                times.add(String.valueOf(mins) + " mins");
             }
-            // Assign an adapter to the list
-            mListView.setAdapter(new Adapter(getApplicationContext(), times, colors));
+            // update adapter info
+            mListAdapter.updateData(times, colors);
 
             initialLayout.setVisibility(View.GONE);
             stopListContainer.setVisibility(View.VISIBLE);
-            // TODO set stuff  here
-            initialText.setText(shuttleData);
+            stopListContainer.invalidate();
         }
     }
 }

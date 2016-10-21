@@ -235,13 +235,25 @@ public class ShutAppWearableListener extends WearableListenerService implements
 
                     @Override
                     public int compare(Stop o1, Stop o2) {
-                        float[] d1 = new float[10];
-                        float[] d2 = new float[10];
-                        Location.distanceBetween(myLat, myLong, o1.lat, o1.lng, d1);
-                        Location.distanceBetween(myLat, myLong, o2.lat, o2.lng, d2);
-                        return (new Float(d2[0])).compareTo(new Float(d1[0]));
+                        Location me = new Location("me");
+                        me.setLatitude(myLat);
+                        me.setLongitude(myLong);
+
+                        Location s1 = new Location("stop1");
+                        s1.setLatitude(o1.lat);
+                        s1.setLongitude(o1.lng);
+
+                        Location s2 = new Location("stop2");
+                        s2.setLatitude(o2.lat);
+                        s2.setLongitude(o2.lng);
+
+                        return (new Double(me.distanceTo(s2))).compareTo(new Double(me.distanceTo(s1)));
                     }
                 });
+                Log.d("asd", myLat + " : " + myLong);
+
+                for (Stop s:mStops)
+                        Log.d("asd", s.address);
 
                 // get all route numbers for the nearest stop
                 Stop closest = mStops.get(0);
