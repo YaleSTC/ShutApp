@@ -32,12 +32,12 @@ import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
+        MessageApi.MessageListener,
         LocationListener {
 
     // Necessary for the unified google services.
@@ -48,9 +48,12 @@ public class MainActivity extends Activity implements
     private RelativeLayout initialLayout;
     private WearableListView mListView;
 
+    // the adapter for mlistview
+    private ShuttleListAdapter mListAdapter;
+
     // Sample dataset for the list
     private List<String> times;
-    private List<String> colors;
+    private List<Integer> colors;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +69,12 @@ public class MainActivity extends Activity implements
                 initialLayout = (RelativeLayout) stub.findViewById(R.id.pre_loading_stuff);
                 initialText = (TextView) stub.findViewById(R.id.text);
                 GPSStatusText = (TextView) stub.findViewById(R.id.gps_status);
+                stopListContainer = (BoxInsetLayout) stub.findViewById((R.id.outer_list_view));
 
                 // Get the list component from the layout of the activity
                 mListView = (WearableListView) stub.findViewById(R.id.wearable_list);
+                mListAdapter = new ShuttleListAdapter(getApplicationContext(), null, null);
+                mListView.setAdapter(mListAdapter);
 
                 Log.d("onCreate", "onLayoutInflated finished");
             }
@@ -80,6 +86,8 @@ public class MainActivity extends Activity implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
+
     }
 
     // Called automatically by mApiClient when it connects to the google services.
@@ -120,7 +128,7 @@ public class MainActivity extends Activity implements
                 });
 
         // register a listener
-        Wearable.MessageApi.addListener(mApiClient, new WearableListener());
+        Wearable.MessageApi.addListener(mApiClient, this);
     }
 
     @Override
@@ -158,16 +166,14 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // TODO
-        //
-        // As before, if we want to handle this add code!
+        Log.e("asd", "onConnectionFailed: " + connectionResult);
     }
 
     // Called automatically by the unified google api client when location has been fetched and
     // changed.
     @Override
     public void onLocationChanged(Location location) {
-        initialText.setText("Your location has been found. Fetching Shuttle info...");
+        initialText.setText("Fetching Shuttle info...");
 
         // Send a message to the phone requesting data from the Transloc api
         // Quick and dirty.
@@ -180,56 +186,70 @@ public class MainActivity extends Activity implements
         (new RequestDataFromHandheld("/get_transloc_data", locationInfo, mApiClient)).start();
     }
 
-    // wearable listener for message API
-    private class WearableListener implements MessageApi.MessageListener {
-        @Override
-        public void onMessageReceived(MessageEvent messageEvent) {
-            String event = messageEvent.getPath();
-            Log.d("WearableListener", "received message with event: " + event);
+    // message api listener
+    @Override
+    public void onMessageReceived(MessageEvent messageEvent) {
+        String event = messageEvent.getPath();
+        Log.d("WearableListener", "received message with event: " + event);
 
-            if (event.equals("/push_shuttle_info")) {
-                String shuttleData;
-                try {
-                    shuttleData = new String(messageEvent.getData(), "UTF8");
-                } catch (UnsupportedEncodingException e) {
-                    Log.e("WearableListener", "Unsupported encoding");
-                    return;
-                }
-
-                // Parse the information
-                String[] splitData = event.split("\\|");
-                int size = splitData.length;
-                // Set the time and color lists
-                times = new ArrayList<>();
-                colors = new ArrayList<>();
-
-                String stop = splitData[0];
-                // Go through the data and add the time and route color to the right lists
-                // Entries in split_data are formatted like "<color_num>,<date_time_string>"
-                long now = System.currentTimeMillis() / 1000L;
-                for (int i = 1; i < size; i++) {
-                    String[] colorTimeSplit = splitData[i].split(",");
-                    colors.add(colorTimeSplit[0]);
-
-                    // Parse the human readable date/time/timezone to get mins from now
-                    String time = colorTimeSplit[1].substring(0, 19);
-                    SimpleDateFormat dfm = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss");
-                    long unixtime = 0;
-                    try {
-                        unixtime = (dfm.parse(time).getTime()) / 1000;
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    long mins = (unixtime - now) / 60;
-                    times.add(stop + ", "+ String.valueOf(mins) + " mins");
-                }
-                // Assign an adapter to the list
-                mListView.setAdapter(new Adapter(getApplicationContext(), times, colors));
-
-                initialLayout.setVisibility(View.GONE);
-                stopListContainer.setVisibility(View.VISIBLE);
-                initialText.setText(shuttleData);
+        if (event.equals("/push_shuttle_info")) {
+            String shuttleData;
+            try {
+                shuttleData = new String(messageEvent.getData(), "UTF8");
+            } catch (UnsupportedEncodingException e) {
+                Log.e("WearableListener", "Unsupported encoding");
+                return;
             }
+
+            Log.d("WearableListener", "received message: " + shuttleData);
+
+            // check if we got anything at all
+            String errorString = "ERROR";
+            if (shuttleData.startsWith(errorString))
+            {
+                initialText.setText(shuttleData.substring(errorString.length()+2, shuttleData.length()));
+                return;
+            }
+
+            // Parse the information
+            String[] splitData = shuttleData.split("\\|");
+            int size = splitData.length;
+            // Set the time and color lists
+            times = new ArrayList<String>();
+            colors = new ArrayList<Integer>();
+
+            String stop = splitData[0];
+
+            // initialize times and colors
+            times.add(stop);
+            colors.add(0xffffff);
+
+            // Go through the data and add the time and route color to the right lists
+            // Entries in split_data are formatted like "<color_num>,<date_time_string>"
+            long now = System.currentTimeMillis() / 1000L;
+            for (int i = 1; i < size; i++) {
+                String[] colorTimeSplit = splitData[i].split(",");
+                colors.add(Integer.parseInt(colorTimeSplit[0]));
+
+                // TODO TIMESTAMPS OMG
+                // Parse the human readable date/time/timezone to get mins from now
+                String time = colorTimeSplit[1].substring(0, 19);
+                SimpleDateFormat dfm = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                long unixtime = 0;
+                try {
+                    unixtime = (dfm.parse(time).getTime()) / 1000;
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                long mins = (unixtime - now) / 60;
+                times.add(String.valueOf(mins) + " mins");
+            }
+            // update adapter info
+            mListAdapter.updateData(times, colors);
+
+            initialLayout.setVisibility(View.GONE);
+            stopListContainer.setVisibility(View.VISIBLE);
+            stopListContainer.invalidate();
         }
     }
 }
